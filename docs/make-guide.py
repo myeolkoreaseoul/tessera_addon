@@ -63,76 +63,55 @@ class KiwiPDF(FPDF):
         self.ln(1)
 
     def body(self, text):
+        self.set_x(10)
         self.set_font("noto", "", 10)
         self.set_text_color(50, 50, 50)
-        self.multi_cell(0, 7, text)
+        self.multi_cell(190, 7, text)
         self.ln(2)
 
     def step(self, num, text):
+        self.set_x(10)
         self.set_font("noto", "B", 10)
         self.set_text_color(45, 106, 79)
-        x = self.get_x()
         self.cell(8, 7, str(num), align="C")
         self.set_font("noto", "", 10)
         self.set_text_color(50, 50, 50)
-        self.multi_cell(0, 7, f"  {text}")
+        self.multi_cell(172, 7, f"  {text}")
         self.ln(1)
 
-    def tip_box(self, text):
+    def _colored_box(self, label, text, fill_rgb, border_rgb, label_rgb, text_rgb):
         self.ln(2)
-        self.set_fill_color(240, 250, 244)
-        self.set_draw_color(45, 106, 79)
-        x, y = 10, self.get_y()
+        self.set_x(10)
         self.set_font("noto", "B", 9)
-        self.set_text_color(45, 106, 79)
-        # Calculate height
-        self.set_xy(14, y + 4)
-        self.cell(10, 6, "TIP")
+        # measure height first
+        label_w = self.get_string_width(label + "  ") + 4
         self.set_font("noto", "", 9)
-        self.set_text_color(60, 60, 60)
-        self.set_xy(27, y + 4)
-        self.multi_cell(165, 6, text)
-        h = self.get_y() - y + 4
-        self.rect(10, y, 190, h, style="DF")
-        # Re-draw text over rect
-        self.set_xy(14, y + 4)
+        y_start = self.get_y()
+        # draw label + text
+        self.set_fill_color(*fill_rgb)
+        self.set_draw_color(*border_rgb)
+        self.set_xy(10, y_start)
         self.set_font("noto", "B", 9)
-        self.set_text_color(45, 106, 79)
-        self.cell(13, 6, "TIP  ")
+        self.set_text_color(*label_rgb)
+        self.cell(190, 7, f"  {label}", fill=True, border="LRT", new_x="LMARGIN", new_y="NEXT")
+        self.set_x(10)
         self.set_font("noto", "", 9)
-        self.set_text_color(60, 60, 60)
-        self.multi_cell(163, 6, text)
+        self.set_text_color(*text_rgb)
+        self.multi_cell(190, 6, f"  {text}", fill=True, border="LRB")
         self.ln(3)
+
+    def tip_box(self, text):
+        self._colored_box("TIP", text, (240, 250, 244), (45, 106, 79), (45, 106, 79), (60, 60, 60))
 
     def warning_box(self, text):
-        self.ln(2)
-        self.set_fill_color(255, 243, 224)
-        self.set_draw_color(230, 81, 0)
-        x, y = 10, self.get_y()
-        self.set_xy(14, y + 4)
-        self.set_font("noto", "B", 9)
-        self.set_text_color(230, 81, 0)
-        self.cell(18, 6, "주의  ")
-        self.set_font("noto", "", 9)
-        self.set_text_color(80, 60, 40)
-        self.multi_cell(158, 6, text)
-        h = self.get_y() - y + 4
-        self.rect(10, y, 190, h, style="DF")
-        self.set_xy(14, y + 4)
-        self.set_font("noto", "B", 9)
-        self.set_text_color(230, 81, 0)
-        self.cell(18, 6, "주의  ")
-        self.set_font("noto", "", 9)
-        self.set_text_color(80, 60, 40)
-        self.multi_cell(158, 6, text)
-        self.ln(3)
+        self._colored_box("주의", text, (255, 243, 224), (230, 81, 0), (230, 81, 0), (80, 60, 40))
 
     def bullet(self, text):
+        self.set_x(10)
         self.set_font("noto", "", 10)
         self.set_text_color(50, 50, 50)
-        x = self.get_x()
         self.cell(6, 7, "•")
-        self.multi_cell(0, 7, f" {text}")
+        self.multi_cell(184, 7, f" {text}")
         self.ln(1)
 
 
@@ -337,9 +316,11 @@ def build():
          "'변경' 버튼을 클릭해서 새 폴더를 선택하면 됩니다."),
     ]
     for q, a in faqs:
+        pdf.set_x(10)
         pdf.set_font("noto", "B", 10)
         pdf.set_text_color(45, 106, 79)
         pdf.multi_cell(190, 7, q)
+        pdf.set_x(10)
         pdf.set_font("noto", "", 10)
         pdf.set_text_color(80, 80, 80)
         pdf.multi_cell(190, 7, a)
