@@ -1,0 +1,47 @@
+{
+  "name": "kiwi",
+  "version": "1.0.0",
+  "description": "이지바로 집행내역 다운로드",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win",
+    "dev": "electron ."
+  },
+  "build": {
+    "appId": "com.jd.kiwi",
+    "productName": "Kiwi",
+    "files": [
+      "electron/**/*",
+      "server/**/*",
+      "web/**/*",
+      "lib/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "myeolkoreaseoul",
+      "repo": "kiwi"
+    }
+  },
+  "dependencies": {
+    "express": "^4.22.1",
+    "multer": "^1.4.5-lts.1",
+    "playwright-core": "^1.58.2",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "electron": "^41.0.0",
+    "electron-builder": "^26.8.1"
+  }
+}

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kiwi — 이지바로 집행내역 다운로드</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', 'Malgun Gothic', sans-serif; background: #f5f7fa; color: #333; }
+
+    .header { background: #2d6a4f; color: white; padding: 16px 24px; display: flex; align-items: center; gap: 12px; }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .header .ver { font-size: 12px; opacity: 0.7; }
+
+    .container { max-width: 860px; margin: 20px auto; padding: 0 20px; }
+
+    .section { background: white; border-radius: 8px; border: 1px solid #e0e0e0; padding: 20px; margin-bottom: 16px; }
+    .section-title { font-size: 14px; font-weight: 600; color: #2d6a4f; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .section-title .num { background: #2d6a4f; color: white; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+    .row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .row label { font-size: 13px; color: #666; min-width: 70px; }
+    .row .path { flex: 1; font-size: 13px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 8px 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    button { cursor: pointer; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 500; transition: background 0.15s; }
+    .btn-primary { background: #2d6a4f; color: white; }
+    .btn-primary:hover { background: #1b4332; }
+    .btn-primary:disabled { background: #aaa; cursor: not-allowed; }
+    .btn-outline { background: white; color: #2d6a4f; border: 1px solid #2d6a4f; }
+    .btn-outline:hover { background: #f0faf4; }
+    .btn-danger { background: #d32f2f; color: white; }
+    .btn-danger:hover { background: #b71c1c; }
+
+    .dropzone { border: 2px dashed #ccc; border-radius: 8px; padding: 30px; text-align: center; color: #999; font-size: 13px; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
+    .dropzone:hover, .dropzone.dragover { border-color: #2d6a4f; background: #f0faf4; color: #2d6a4f; }
+    .dropzone.uploaded { border-color: #2d6a4f; border-style: solid; background: #f0faf4; color: #333; }
+
+    .guide { font-size: 13px; color: #555; line-height: 1.8; }
+    .guide ol { padding-left: 20px; }
+
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .status-dot.connected { background: #4caf50; }
+    .status-dot.disconnected { background: #ccc; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th { background: #f5f5f5; padding: 8px 10px; text-align: left; border-bottom: 2px solid #ddd; font-weight: 600; position: sticky; top: 0; }
+    tbody td { padding: 6px 10px; border-bottom: 1px solid #eee; }
+    tbody tr:hover { background: #fafafa; }
+    .table-wrap { max-height: 280px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 4px; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+    .badge-wait { background: #e0e0e0; color: #666; }
+    .badge-running { background: #fff3e0; color: #e65100; }
+    .badge-done { background: #e8f5e9; color: #2e7d32; }
+    .badge-fail { background: #ffebee; color: #c62828; }
+
+    .progress-wrap { margin: 8px 0; }
+    .progress-bar { height: 6px; background: #e0e0e0; border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #2d6a4f; transition: width 0.3s; border-radius: 3px; }
+    .progress-text { font-size: 12px; color: #666; margin-top: 4px; }
+
+    .bottom-bar { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
+
+    .file-info { font-size: 12px; color: #2d6a4f; margin-top: 8px; font-weight: 500; }
+    .summary { font-size: 13px; color: #666; text-align: right; margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Kiwi</h1>
+    <span class="ver">이지바로 집행내역 다운로드 v1.0.0</span>
+  </div>
+
+  <div class="container">
+    <!-- 저장 위치 -->
+    <div class="section">
+      <div class="row">
+        <label>저장 위치</label>
+        <div class="path" id="downloadDir">설정되지 않음</div>
+        <button class="btn-outline" onclick="selectFolder()">변경</button>
+      </div>
+    </div>
+
+    <!-- 1. 브라우저 -->
+    <div class="section">
+      <div class="section-title"><span class="num">1</span> 브라우저</div>
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:12px;">
+        <button class="btn-primary" id="btnBrowser" onclick="launchBrowser()">브라우저 열기</button>
+        <span><span class="status-dot disconnected" id="browserDot"></span> <span id="browserStatus" style="font-size:13px; color:#666;">미연결</span></span>
+      </div>
+      <div class="guide">
+        <ol>
+          <li>위 버튼을 클릭하여 브라우저를 실행하세요.</li>
+          <li>이지바로에 로그인하세요.</li>
+          <li><strong>정산 → 상시점검 → 상시점검 관리</strong> 화면으로 이동하세요.</li>
+          <li>이동 완료 후, 아래 과제 목록을 업로드하세요.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 2. 과제 목록 -->
+    <div class="section">
+      <div class="section-title"><span class="num">2</span> 과제 목록</div>
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+        엑셀 파일을 여기에 끌어다 놓거나 클릭하여 선택하세요
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+      <div class="file-info" id="fileInfo"></div>
+
+      <div id="tableArea" style="display:none; margin-top:12px;">
+        <div class="summary" id="summary"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>사업년도</th>
+                <th>과제번호</th>
+                <th>연구수행기관</th>
+                <th>연구책임자</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody id="taskBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 실행 -->
+    <div class="section">
+      <div class="section-title"><span class="num">3</span> 실행</div>
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="progress-text" id="progressText">대기 중</div>
+      </div>
+      <div class="bottom-bar">
+        <button class="btn-primary" id="btnStart" onclick="startDownload()" disabled>시작</button>
+        <button class="btn-danger" id="btnStop" onclick="stopDownload()" style="display:none">중지</button>
+        <button class="btn-outline" id="btnOpenFolder" onclick="openFolder()" style="display:none">폴더 열기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let pollTimer = null;
+
+    // 저장 폴더 선택
+    async function selectFolder() {
+      if (window.kiwi) {
+        const dir = await window.kiwi.selectFolder();
+        if (dir) setDownloadDir(dir);
+      } else {
+        const dir = prompt('저장 폴더 경로를 입력하세요:');
+        if (dir) setDownloadDir(dir);
+      }
+    }
+
+    async function setDownloadDir(dir) {
+      await fetch('/api/set-download-dir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dir }),
+      });
+      document.getElementById('downloadDir').textContent = dir;
+      localStorage.setItem('kiwi_downloadDir', dir);
+      checkReady();
+    }
+
+    // 브라우저 열기
+    async function launchBrowser() {
+      const btn = document.getElementById('btnBrowser');
+      btn.disabled = true;
+      btn.textContent = '연결 중...';
+      try {
+        const res = await fetch('/api/browser/launch', { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          setBrowserStatus(true);
+        } else {
+          alert('브라우저 연결 실패: ' + (data.error || ''));
+          setBrowserStatus(false);
+        }
+      } catch (e) {
+        alert('오류: ' + e.message);
+        setBrowserStatus(false);
+      }
+      btn.disabled = false;
+      btn.textContent = '브라우저 열기';
+    }
+
+    function setBrowserStatus(connected) {
+      const dot = document.getElementById('browserDot');
+      const text = document.getElementById('browserStatus');
+      dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+      text.textContent = connected ? '연결됨' : '미연결';
+      checkReady();
+    }
+
+    // 파일 업로드
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('dragover'); });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+
+    async function handleFile(file) {
+      if (!file) return;
+      const form = new FormData();
+      form.append('file', file);
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: form });
+        const data = await res.json();
+        if (data.ok) {
+          dropzone.classList.add('uploaded');
+          dropzone.textContent = data.fileName;
+          document.getElementById('fileInfo').textContent = `${data.count}건 로드됨`;
+          refreshTable();
+        } else {
+          alert('파일 오류: ' + (data.error || ''));
+        }
+      } catch (e) {
+        alert('업로드 실패: ' + e.message);
+      }
+    }
+
+    async function refreshTable() {
+      const res = await fetch('/api/state');
+      const data = await res.json();
+      const tbody = document.getElementById('taskBody');
+      tbody.innerHTML = '';
+      data.tasks.forEach((t, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i + 1}</td>
+          <td>${t.사업년도}</td>
+          <td>${t.과제번호}</td>
+          <td>${t.연구수행기관}</td>
+          <td>${t.연구책임자}</td>
+          <td><span class="badge badge-${badgeClass(t.status)}">${t.status}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('tableArea').style.display = 'block';
+      document.getElementById('summary').textContent = `총 ${data.tasks.length}건`;
+      checkReady();
+    }
+
+    function badgeClass(status) {
+      if (status === '완료') return 'done';
+      if (status === '진행중') return 'running';
+      if (status === '실패') return 'fail';
+      return 'wait';
+    }
+
+    function checkReady() {
+      const dir = document.getElementById('downloadDir').textContent;
+      const hasDir = dir && dir !== '설정되지 않음';
+      const dot = document.getElementById('browserDot');
+      const connected = dot.classList.contains('connected');
+      const tbody = document.getElementById('taskBody');
+      const hasTasks = tbody && tbody.children.length > 0;
+      document.getElementById('btnStart').disabled = !(hasDir && connected && hasTasks);
+    }
+
+    // 시작
+    async function startDownload() {
+      const res = await fetch('/api/start', { method: 'POST' });
+      const data = await res.json();
+      if (!data.ok) { alert(data.error || '시작 실패'); return; }
+      document.getElementById('btnStart').style.display = 'none';
+      document.getElementById('btnStop').style.display = '';
+      startPolling();
+    }
+
+    async function stopDownload() {
+      await fetch('/api/stop', { method: 'POST' });
+      stopPolling();
+      document.getElementById('btnStart').style.display = '';
+      document.getElementById('btnStop').style.display = 'none';
+    }
+
+    function startPolling() {
+      stopPolling();
+      pollTimer = setInterval(pollState, 1000);
+    }
+    function stopPolling() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    async function pollState() {
+      try {
+        const res = await fetch('/api/state');
+        const data = await res.json();
+
+        // 테이블 업데이트
+        const rows = document.getElementById('taskBody').children;
+        data.tasks.forEach((t, i) => {
+          if (rows[i]) {
+            const badge = rows[i].querySelector('.badge');
+            badge.className = 'badge badge-' + badgeClass(t.status);
+            badge.textContent = t.status;
+          }
+        });
+
+        // 진행바
+        const done = data.tasks.filter(t => t.status === '완료' || t.status === '실패').length;
+        const pct = data.tasks.length ? Math.round(done / data.tasks.length * 100) : 0;
+        document.getElementById('progressFill').style.width = pct + '%';
+
+        if (data.running && data.currentIdx >= 0) {
+          const cur = data.tasks[data.currentIdx];
+          document.getElementById('progressText').textContent =
+            `${done}/${data.tasks.length} — ${cur.과제번호} ${cur.연구수행기관} 다운로드 중`;
+        } else if (!data.running && done > 0) {
+          const ok = data.tasks.filter(t => t.status === '완료').length;
+          const fail = data.tasks.filter(t => t.status === '실패').length;
+          document.getElementById('progressText').textContent =
+            `완료 — 성공 ${ok}건, 실패 ${fail}건`;
+          stopPolling();
+          document.getElementById('btnStart').style.display = '';
+          document.getElementById('btnStop').style.display = 'none';
+          document.getElementById('btnOpenFolder').style.display = '';
+        } else {
+          document.getElementById('progressText').textContent = '대기 중';
+        }
+
+        // 현재 진행 행으로 스크롤
+        if (data.currentIdx >= 0 && rows[data.currentIdx]) {
+          rows[data.currentIdx].scrollIntoView({ block: 'nearest' });
+        }
+      } catch {}
+    }
+
+    function openFolder() {
+      const dir = document.getElementById('downloadDir').textContent;
+      if (window.kiwi) {
+        window.kiwi.openFolder(dir);
+      } else {
+        alert('폴더: ' + dir);
+      }
+    }
+
+    // 초기화
+    (async function init() {
+      // 저장 폴더 복원
+      const saved = localStorage.getItem('kiwi_downloadDir');
+      if (saved) {
+        await setDownloadDir(saved);
+      }
+
+      // 브라우저 상태 확인
+      try {
+        const res = await fetch('/api/browser/status');
+        const data = await res.json();
+        setBrowserStatus(data.connected);
+      } catch {}
+    })();
+  </script>
+</body>
+</html>
