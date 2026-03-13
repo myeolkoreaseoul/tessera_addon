@@ -277,6 +277,16 @@ async function checkOtpModal() {
 // ============================================================
 
 async function navigateToSangsijumgum() {
+  // ezbaro 페이지로 재선택 (gaia 페이지가 선택되어 있을 수 있음)
+  if (browser && browser.isConnected()) {
+    const ctx = browser.contexts()[0];
+    const ezPage = ctx?.pages()?.find(p => /ezbaro/i.test(p.url()));
+    if (ezPage && ezPage !== page) {
+      page = ezPage;
+      page.on('dialog', async d => { try { await d.accept(); } catch {} });
+    }
+  }
+
   // 이미 cal00201이면 패스
   const already = await page.evaluate(() => {
     const frames = window._application?.gvWorkFrame?.frames;
@@ -434,7 +444,7 @@ app.post('/api/browser/launch', async (req, res) => {
     if (!contexts.length) throw new Error('Chrome 컨텍스트 없음');
     const ctx = contexts[0];
     const pages = ctx.pages();
-    page = pages.find(p => /gaia|ezbaro/i.test(p.url())) || pages[0];
+    page = pages.find(p => /ezbaro/i.test(p.url())) || pages.find(p => /gaia/i.test(p.url())) || pages[0];
     if (!page) throw new Error('열린 탭 없음');
     page.on('dialog', async d => { try { await d.accept(); } catch {} });
 
