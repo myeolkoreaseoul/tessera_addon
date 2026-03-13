@@ -30,7 +30,7 @@
     .btn-outline:hover { background: #f0faf4; }
     .btn-danger { background: #d32f2f; color: white; }
     .btn-danger:hover { background: #b71c1c; }
-    .btn-warning { background: #f57f17; color: white; }
+    .btn-warning { background: #f57c00; color: white; }
     .btn-warning:hover { background: #e65100; }
 
     .dropzone { border: 2px dashed #ccc; border-radius: 8px; padding: 30px; text-align: center; color: #999; font-size: 13px; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
@@ -44,6 +44,14 @@
     .status-dot.connected { background: #4caf50; }
     .status-dot.disconnected { background: #ccc; }
     .status-dot.warning { background: #ff9800; }
+
+    .session-indicator { font-size: 12px; color: #888; margin-left: 8px; }
+    .session-indicator.ok { color: #4caf50; }
+    .session-indicator.warn { color: #ff9800; }
+
+    .login-status { font-size: 12px; margin-left: 12px; }
+    .login-status.ok { color: #4caf50; }
+    .login-status.no { color: #d32f2f; }
 
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     thead th { background: #f5f5f5; padding: 8px 10px; text-align: left; border-bottom: 2px solid #ddd; font-weight: 600; position: sticky; top: 0; }
@@ -64,31 +72,32 @@
     .progress-fill { height: 100%; background: #2d6a4f; transition: width 0.3s; border-radius: 3px; }
     .progress-text { font-size: 12px; color: #666; margin-top: 4px; }
 
-    .bottom-bar { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
+    .bottom-bar { display: flex; gap: 12px; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
 
     .file-info { font-size: 12px; color: #2d6a4f; margin-top: 8px; font-weight: 500; }
     .summary { font-size: 13px; color: #666; text-align: right; margin: 4px 0; }
 
-    .alert-banner { padding: 10px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; display: none; align-items: center; gap: 8px; }
+    .alert-banner { padding: 10px 16px; border-radius: 6px; margin-bottom: 12px; display: none; align-items: center; justify-content: space-between; font-size: 13px; }
     .alert-banner.show { display: flex; }
-    .alert-warning { background: #fff3e0; border: 1px solid #ffb74d; color: #e65100; }
-    .alert-error { background: #ffebee; border: 1px solid #ef9a9a; color: #c62828; }
-    .alert-banner .dismiss { margin-left: auto; cursor: pointer; opacity: 0.7; background: none; border: none; font-size: 16px; padding: 0 4px; color: inherit; }
+    .alert-warning { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+    .alert-error { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+    .alert-banner .alert-close { cursor: pointer; font-size: 16px; font-weight: bold; margin-left: 12px; opacity: 0.6; background: none; border: none; color: inherit; padding: 0; }
+    .alert-banner .alert-close:hover { opacity: 1; }
 
-    .session-indicator { font-size: 12px; color: #666; display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+    .merge-info { font-size: 12px; color: #2d6a4f; margin-top: 4px; font-weight: 500; }
   </style>
 </head>
 <body>
   <div class="header">
     <h1>Kiwi</h1>
-    <span class="ver">이지바로 집행내역 다운로드 v2.0</span>
+    <span class="ver">이지바로 집행내역 다운로드 v2.1.0</span>
   </div>
 
   <div class="container">
     <!-- 경고 배너 -->
     <div class="alert-banner" id="alertBanner">
       <span id="alertMessage"></span>
-      <button class="dismiss" onclick="dismissAlert()">&times;</button>
+      <button class="alert-close" onclick="dismissAlert()">&times;</button>
     </div>
 
     <!-- 저장 위치 -->
@@ -103,27 +112,23 @@
     <!-- 1. 브라우저 -->
     <div class="section">
       <div class="section-title"><span class="num">1</span> 브라우저</div>
-      <div style="display:flex; align-items:center; gap:16px; margin-bottom:12px;">
+      <div style="display:flex; align-items:center; gap:16px; margin-bottom:12px; flex-wrap:wrap;">
         <button class="btn-primary" id="btnBrowser" onclick="launchBrowser()">브라우저 열기</button>
         <span>
           <span class="status-dot disconnected" id="browserDot"></span>
           <span id="browserStatus" style="font-size:13px; color:#666;">미연결</span>
+          <span class="login-status" id="loginStatus"></span>
+          <span class="session-indicator" id="sessionIndicator"></span>
         </span>
-        <span id="loginStatus" style="font-size:12px; color:#999; margin-left:8px;"></span>
+        <button class="btn-outline" id="btnNavigate" onclick="autoNavigate()" style="display:none;">자동 이동</button>
       </div>
       <div class="guide">
         <ol>
           <li>위 버튼을 클릭하여 브라우저를 실행하세요.</li>
           <li>이지바로에 로그인하세요.</li>
-          <li><strong>정산 &rarr; 상시점검 &rarr; 상시점검 관리</strong> 화면으로 이동하세요.
-            <button class="btn-outline" style="padding:4px 10px; font-size:11px; margin-left:8px;" onclick="autoNavigate()">자동 이동</button>
-          </li>
+          <li><strong>자동 이동</strong> 버튼을 클릭하거나, 수동으로 상시점검 관리 화면으로 이동하세요.</li>
           <li>이동 완료 후, 아래 과제 목록을 업로드하세요.</li>
         </ol>
-      </div>
-      <div class="session-indicator" id="sessionIndicator" style="display:none;">
-        <span class="status-dot connected" id="sessionDot"></span>
-        <span id="sessionText">세션 유지 중</span>
       </div>
     </div>
 
@@ -163,6 +168,7 @@
         <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
         <div class="progress-text" id="progressText">대기 중</div>
       </div>
+      <div class="merge-info" id="mergeInfo" style="display:none;"></div>
       <div class="bottom-bar">
         <button class="btn-primary" id="btnStart" onclick="startDownload()" disabled>시작</button>
         <button class="btn-warning" id="btnPause" onclick="togglePause()" style="display:none">일시정지</button>
@@ -175,10 +181,20 @@
 
   <script>
     let pollTimer = null;
-    let isPolling = false; // Gemini G3: 폴링 중첩 방지
+    let isPolling = false;
+    let audioCtx = null;
+    let lastRunning = false;
+
+    // AudioContext 생성 (사용자 인터랙션 시점)
+    function ensureAudioCtx() {
+      if (!audioCtx) {
+        try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+      }
+    }
 
     // 저장 폴더 선택
     async function selectFolder() {
+      ensureAudioCtx();
       if (window.kiwi) {
         const dir = await window.kiwi.selectFolder();
         if (dir) setDownloadDir(dir);
@@ -201,6 +217,7 @@
 
     // 브라우저 열기
     async function launchBrowser() {
+      ensureAudioCtx();
       const btn = document.getElementById('btnBrowser');
       btn.disabled = true;
       btn.textContent = '연결 중...';
@@ -208,7 +225,9 @@
         const res = await fetch('/api/browser/launch', { method: 'POST' });
         const data = await res.json();
         if (data.ok) {
-          setBrowserStatus(true, data.loginOk);
+          setBrowserStatus(true);
+          updateLoginStatus(data.loginOk);
+          document.getElementById('btnNavigate').style.display = '';
         } else {
           alert('브라우저 연결 실패: ' + (data.error || ''));
           setBrowserStatus(false);
@@ -221,39 +240,58 @@
       btn.textContent = '브라우저 열기';
     }
 
-    function setBrowserStatus(connected, loginOk) {
+    function setBrowserStatus(connected) {
       const dot = document.getElementById('browserDot');
       const text = document.getElementById('browserStatus');
-      const loginEl = document.getElementById('loginStatus');
-      const sessionEl = document.getElementById('sessionIndicator');
-
       dot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
       text.textContent = connected ? '연결됨' : '미연결';
-
       if (connected) {
-        loginEl.textContent = loginOk ? '(로그인됨)' : '(로그인 필요)';
-        loginEl.style.color = loginOk ? '#2e7d32' : '#c62828';
-        sessionEl.style.display = 'flex';
-      } else {
-        loginEl.textContent = '';
-        sessionEl.style.display = 'none';
+        document.getElementById('btnNavigate').style.display = '';
       }
       checkReady();
     }
 
+    function updateLoginStatus(loginOk) {
+      const el = document.getElementById('loginStatus');
+      if (loginOk) {
+        el.className = 'login-status ok';
+        el.textContent = '로그인됨';
+      } else {
+        el.className = 'login-status no';
+        el.textContent = '로그인 필요';
+      }
+    }
+
+    function updateSessionIndicator(sessionOk) {
+      const el = document.getElementById('sessionIndicator');
+      if (sessionOk) {
+        el.className = 'session-indicator ok';
+        el.textContent = '세션 유지중';
+      } else {
+        el.className = 'session-indicator warn';
+        el.textContent = '세션 확인 필요';
+      }
+    }
+
     // 자동 네비게이션
     async function autoNavigate() {
+      ensureAudioCtx();
+      const btn = document.getElementById('btnNavigate');
+      btn.disabled = true;
+      btn.textContent = '이동 중...';
       try {
         const res = await fetch('/api/navigate', { method: 'POST' });
         const data = await res.json();
         if (data.ok) {
-          alert('상시점검 관리 화면으로 이동 완료');
+          alert(data.message);
         } else {
-          alert(data.message || data.error || '자동 이동 실패');
+          alert(data.message || '이동 실패');
         }
       } catch (e) {
-        alert('자동 이동 실패: ' + e.message);
+        alert('오류: ' + e.message);
       }
+      btn.disabled = false;
+      btn.textContent = '자동 이동';
     }
 
     // 파일 업로드
@@ -268,6 +306,7 @@
 
     async function handleFile(file) {
       if (!file) return;
+      ensureAudioCtx();
       const form = new FormData();
       form.append('file', file);
       try {
@@ -276,7 +315,7 @@
         if (data.ok) {
           dropzone.classList.add('uploaded');
           dropzone.textContent = data.fileName;
-          document.getElementById('fileInfo').textContent = data.count + '건 로드됨';
+          document.getElementById('fileInfo').textContent = `${data.count}건 로드됨`;
           refreshTable();
         } else {
           alert('파일 오류: ' + (data.error || ''));
@@ -312,7 +351,7 @@
         tbody.appendChild(tr);
       });
       document.getElementById('tableArea').style.display = 'block';
-      document.getElementById('summary').textContent = '총 ' + data.tasks.length + '건';
+      document.getElementById('summary').textContent = `총 ${data.tasks.length}건`;
       checkReady();
     }
 
@@ -333,64 +372,67 @@
       document.getElementById('btnStart').disabled = !(hasDir && connected && hasTasks);
     }
 
-    // 시작/중지/일시정지
-    // AudioContext를 사용자 제스처 시 미리 생성 (자동재생 정책 대응)
-    let audioCtx = null;
-    function ensureAudioCtx() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-    }
-
+    // 시작
     async function startDownload() {
-      ensureAudioCtx(); // 사용자 클릭 컨텍스트에서 AudioContext 활성화
-      // 데스크탑 알림 권한 미리 요청
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
+      ensureAudioCtx();
+      try { Notification.requestPermission(); } catch {}
       const res = await fetch('/api/start', { method: 'POST' });
       const data = await res.json();
       if (!data.ok) { alert(data.error || '시작 실패'); return; }
+      lastRunning = true;
       document.getElementById('btnStart').style.display = 'none';
       document.getElementById('btnPause').style.display = '';
       document.getElementById('btnStop').style.display = '';
       document.getElementById('btnRetry').style.display = 'none';
-      document.getElementById('btnOpenFolder').style.display = 'none';
+      document.getElementById('mergeInfo').style.display = 'none';
       startPolling();
     }
 
     async function stopDownload() {
       await fetch('/api/stop', { method: 'POST' });
-      stopPolling();
-      document.getElementById('btnStart').style.display = '';
-      document.getElementById('btnPause').style.display = 'none';
-      document.getElementById('btnStop').style.display = 'none';
     }
 
     async function togglePause() {
-      const res = await fetch('/api/pause', { method: 'POST' });
-      const data = await res.json();
-      const btn = document.getElementById('btnPause');
-      btn.textContent = data.paused ? '재개' : '일시정지';
-      btn.className = data.paused ? 'btn-primary' : 'btn-warning';
+      ensureAudioCtx();
+      try {
+        const res = await fetch('/api/pause', { method: 'POST' });
+        const data = await res.json();
+        const btn = document.getElementById('btnPause');
+        if (data.paused) {
+          btn.textContent = '재개';
+          btn.className = 'btn-primary';
+        } else {
+          btn.textContent = '일시정지';
+          btn.className = 'btn-warning';
+        }
+      } catch (e) {
+        alert('오류: ' + e.message);
+      }
     }
 
     async function retryFailed() {
+      ensureAudioCtx();
       const res = await fetch('/api/retry-failed', { method: 'POST' });
       const data = await res.json();
-      if (!data.ok) { alert(data.error || '재시도 실패'); return; }
-      document.getElementById('btnStart').style.display = 'none';
-      document.getElementById('btnPause').style.display = '';
-      document.getElementById('btnStop').style.display = '';
-      document.getElementById('btnRetry').style.display = 'none';
-      startPolling();
+      if (data.error) { alert(data.error); return; }
+      if (data.retryCount) {
+        lastRunning = true;
+        document.getElementById('btnStart').style.display = 'none';
+        document.getElementById('btnPause').style.display = '';
+        document.getElementById('btnStop').style.display = '';
+        document.getElementById('btnRetry').style.display = 'none';
+        startPolling();
+      } else {
+        alert(data.message || '재시도 대상 없음');
+      }
     }
 
-    // 알림 배너
-    function showAlert(type, message) {
+    // 경고 관련
+    function showAlert(msg, type) {
       const banner = document.getElementById('alertBanner');
       const msgEl = document.getElementById('alertMessage');
-      banner.className = 'alert-banner show ' + (type === 'session' ? 'alert-error' : 'alert-warning');
-      msgEl.textContent = message;
+      msgEl.textContent = msg;
+      banner.className = 'alert-banner show ' + (type === 'error' ? 'alert-error' : 'alert-warning');
     }
 
     function hideAlert() {
@@ -399,51 +441,81 @@
 
     async function dismissAlert() {
       hideAlert();
-      await fetch('/api/dismiss-alert', { method: 'POST' });
+      try { await fetch('/api/dismiss-alert', { method: 'POST' }); } catch {}
     }
 
-    // 폴링
+    // 배치 완료 알림
+    function notifyBatchDone(okCount, failCount) {
+      // 소리
+      if (audioCtx) {
+        try {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.frequency.value = 800;
+          gain.gain.value = 0.3;
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.2);
+          setTimeout(() => {
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.frequency.value = 1200;
+            gain2.gain.value = 0.3;
+            osc2.start();
+            osc2.stop(audioCtx.currentTime + 0.3);
+          }, 250);
+        } catch {}
+      }
+
+      // 데스크탑 알림
+      if (Notification.permission === 'granted') {
+        try {
+          new Notification('Kiwi 다운로드 완료', {
+            body: `성공 ${okCount}건, 실패 ${failCount}건`,
+            icon: '/favicon.ico',
+          });
+        } catch {}
+      }
+    }
+
     function startPolling() {
       stopPolling();
-      pollFailCount = 0;
       pollTimer = setInterval(pollState, 1000);
     }
     function stopPolling() {
       if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
     }
 
-    let pollFailCount = 0;
-    let batchDoneNotified = false;
-
     async function pollState() {
-      if (isPolling) return; // 이전 요청 완료 전 중복 방지
+      if (isPolling) return;
       isPolling = true;
       try {
         const res = await fetch('/api/state');
         const data = await res.json();
 
-        // 연결 복구 시 오류 배너 숨김
-        if (pollFailCount > 0) {
-          pollFailCount = 0;
-          hideAlert();
-        }
+        // 브라우저 상태
+        setBrowserStatus(data.browserConnected);
+        updateLoginStatus(data.loginOk);
+        updateSessionIndicator(data.sessionOk);
 
         // 경고 배너
         if (data.alert) {
-          showAlert(data.alert.type, data.alert.message);
+          showAlert(data.alert.message, data.alert.type);
         } else {
           hideAlert();
         }
 
-        // 세션 상태
-        const sessionDot = document.getElementById('sessionDot');
-        const sessionText = document.getElementById('sessionText');
-        if (data.sessionOk) {
-          sessionDot.className = 'status-dot connected';
-          sessionText.textContent = '세션 유지 중';
+        // 일시정지 버튼 상태 동기화
+        const btnPause = document.getElementById('btnPause');
+        if (data.paused) {
+          btnPause.textContent = '재개';
+          btnPause.className = 'btn-primary';
         } else {
-          sessionDot.className = 'status-dot warning';
-          sessionText.textContent = '세션 경고';
+          btnPause.textContent = '일시정지';
+          btnPause.className = 'btn-warning';
         }
 
         // 테이블 업데이트
@@ -465,36 +537,39 @@
         const pct = data.tasks.length ? Math.round(done / data.tasks.length * 100) : 0;
         document.getElementById('progressFill').style.width = pct + '%';
 
-        if (data.paused) {
-          document.getElementById('progressText').textContent =
-            done + '/' + data.tasks.length + ' — 일시정지됨';
-        } else if (data.running && data.currentIdx >= 0) {
-          batchDoneNotified = false;
+        const roundLabel = data.retryRound > 0 ? ` [재시도 ${data.retryRound}]` : '';
+        const pauseLabel = data.paused ? ' (일시정지)' : '';
+
+        if (data.running && data.currentIdx >= 0) {
           const cur = data.tasks[data.currentIdx];
-          const roundText = data.retryRound > 0 ? ' (재시도 ' + data.retryRound + '차)' : '';
           document.getElementById('progressText').textContent =
-            done + '/' + data.tasks.length + ' — ' + cur.과제번호 + ' ' + cur.연구수행기관 + ' 다운로드 중' + roundText;
-        } else if (!data.running && done > 0) {
+            `${done}/${data.tasks.length}${roundLabel}${pauseLabel} — ${cur ? cur.과제번호 + ' ' + cur.연구수행기관 : ''} 다운로드 중`;
+        } else if (!data.running && lastRunning) {
+          // 방금 완료됨
+          lastRunning = false;
           const ok = data.tasks.filter(t => t.status === '완료').length;
           const fail = data.tasks.filter(t => t.status === '실패').length;
-          let statusText = '완료 — 성공 ' + ok + '건, 실패 ' + fail + '건';
-          if (data.mergedFile) statusText += ' (병합: ' + data.mergedFile + ')';
-          document.getElementById('progressText').textContent = statusText;
-          stopPolling();
+          document.getElementById('progressText').textContent =
+            `완료 — 성공 ${ok}건, 실패 ${fail}건`;
+
           document.getElementById('btnStart').style.display = '';
           document.getElementById('btnPause').style.display = 'none';
           document.getElementById('btnStop').style.display = 'none';
           document.getElementById('btnOpenFolder').style.display = '';
+
           if (fail > 0) {
             document.getElementById('btnRetry').style.display = '';
           }
 
-          // 배치 완료 알림 (소리 + 데스크탑 notification)
-          if (!batchDoneNotified) {
-            batchDoneNotified = true;
-            notifyBatchDone(ok, fail);
+          if (data.mergedFile) {
+            const mergeEl = document.getElementById('mergeInfo');
+            mergeEl.textContent = `병합 파일: ${data.mergedFile}`;
+            mergeEl.style.display = 'block';
           }
-        } else {
+
+          notifyBatchDone(ok, fail);
+          stopPolling();
+        } else if (!data.running) {
           document.getElementById('progressText').textContent = '대기 중';
         }
 
@@ -502,46 +577,8 @@
         if (data.currentIdx >= 0 && rows[data.currentIdx]) {
           rows[data.currentIdx].scrollIntoView({ block: 'nearest' });
         }
-      } catch {
-        // 서버 연결 실패 시 배너 표시
-        pollFailCount++;
-        if (pollFailCount >= 3) {
-          showAlert('error', '서버 연결 끊김 — Kiwi 서버가 응답하지 않습니다.');
-        }
-      } finally { isPolling = false; }
-    }
-
-    function notifyBatchDone(ok, fail) {
-      // 비프음 (전역 audioCtx 재사용)
-      try {
-        if (audioCtx) {
-          if (audioCtx.state === 'suspended') audioCtx.resume();
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.frequency.value = 800;
-          gain.gain.value = 0.3;
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.2);
-          setTimeout(() => {
-            const osc2 = audioCtx.createOscillator();
-            const gain2 = audioCtx.createGain();
-            osc2.connect(gain2);
-            gain2.connect(audioCtx.destination);
-            osc2.frequency.value = 1000;
-            gain2.gain.value = 0.3;
-            osc2.start();
-            osc2.stop(audioCtx.currentTime + 0.3);
-          }, 250);
-        }
-      } catch {}
-
-      // 데스크탑 알림
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('Kiwi 다운로드 완료', {
-          body: '성공 ' + ok + '건, 실패 ' + fail + '건',
-        });
+      } catch {} finally {
+        isPolling = false;
       }
     }
 
@@ -564,7 +601,10 @@
       try {
         const res = await fetch('/api/browser/status');
         const data = await res.json();
-        setBrowserStatus(data.connected, data.loginOk);
+        setBrowserStatus(data.connected);
+        if (data.connected) {
+          document.getElementById('btnNavigate').style.display = '';
+        }
       } catch {}
     })();
   </script>
