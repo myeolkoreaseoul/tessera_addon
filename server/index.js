@@ -537,8 +537,13 @@ app.post('/api/retry-failed', async (req, res) => {
 
 app.post('/api/navigate', async (req, res) => {
   if (!browser || !browser.isConnected()) return res.status(400).json({ error: '브라우저 미연결' });
-  const ok = await navigateToSangsijumgum();
-  res.json({ ok, message: ok ? '상시점검 관리 화면으로 이동 완료' : '자동 이동 실패. 수동으로 정산 → 상시점검 → 상시점검 관리로 이동하세요.' });
+  try {
+    const ok = await navigateToSangsijumgum();
+    res.json({ ok, message: ok ? '상시점검 관리 화면으로 이동 완료' : '자동 이동 실패. 수동으로 정산 → 상시점검 → 상시점검 관리로 이동하세요.' });
+  } catch (e) {
+    console.error('네비게이션 오류:', e.message);
+    res.status(500).json({ ok: false, message: '자동 이동 오류: ' + e.message });
+  }
 });
 
 app.post('/api/dismiss-alert', (req, res) => {
