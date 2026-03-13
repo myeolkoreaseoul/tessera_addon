@@ -287,27 +287,15 @@ async function navigateToSangsijumgum() {
   }).catch(() => false);
   if (already) return true;
 
-  // Nexacro API로 직접 메뉴 열기 시도
+  // fnCalMenuMove로 정산 > 상시점검 > 상시점검 관리 이동
   const opened = await page.evaluate(() => {
     try {
       const app = window._application;
       if (!app) return false;
-      // gvWorkFrame에서 메뉴 열기 시도
-      if (typeof app.gvLeftFrame?.form?.fn_treeNodeClick === 'function') {
-        // 메뉴 트리에서 cal00201 찾기
-        const ds = app.gvLeftFrame?.form?.dsMenu;
-        if (ds) {
-          for (let r = 0; r < ds.getRowCount(); r++) {
-            const menuId = ds.getColumn(r, 'menuId') || ds.getColumn(r, 'MENU_ID') || '';
-            if (menuId.includes('cal00201') || menuId.includes('CAL00201')) {
-              ds.set_rowposition(r);
-              app.gvLeftFrame.form.fn_treeNodeClick(r);
-              return true;
-            }
-          }
-        }
-      }
-      return false;
+      const form = app.gvLeftFrame?.form;
+      if (!form || typeof form.fnCalMenuMove !== 'function') return false;
+      form.fnCalMenuMove('MCAL010200', 'MCAL010203');
+      return true;
     } catch { return false; }
   }).catch(() => false);
 
